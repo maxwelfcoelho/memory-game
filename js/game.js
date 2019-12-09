@@ -1,50 +1,75 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-class Tile {
-    constructor(x, y, color) {
-        this.x = x;
-        this.y = y;
-        this.size = 140;
-        this.color = color;
-    }
+import Tile from './Tile.js';
 
-    drawFaceDown() {
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x, this.y, this.size, this.size);
-    }
-
-    drawFaceUp() {
-        ctx.fillStyle = "yellow";
-        ctx.fillRect(this.x, this.y, this.size, this.size);
-    }
-
-    isSelected(x, y) {
-        if (x >= this.x && x <= this.x + this.size &&
-            y >= this.y && y <= this.y + this.size) {
-            return true;
-        }
-    }
+// helper functions
+function shuffle(array) {
+  let currentIndex = array.length, temporaryValue, randomIndex;
+  while (0 !== currentIndex) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+  return array;
 }
 
 let tiles = [];
+let colors = ["red", "yellow", "violet", "green", "pink", "orange", "purple", "brown", "magenta", "cyan", "red", "yellow", "violet", "green", "pink", "orange", "purple", "brown", "magenta", "cyan"];
+let shuffledColors = shuffle(colors);
+let flippedTiles = [];
+
+// create tiles
 for (let i = 0; i < 5; i++) {
-    for (let j = 0; j < 4; j++) {
-        tiles.push(new Tile(i * 150, j * 150, "blue"));
-    }
+  for(let j = 0; j < 4; j++) {
+    tiles.push(new Tile(i * 150, j * 150, shuffledColors.pop()));
+  }
 }
 
-for (let i = 0; i < tiles.length; i++) {
-    tiles[i].drawFaceDown();
+function draw() {
+  for (let i = 0; i < tiles.length; i++) {
+    if (tiles[i].revealed === false) {
+      tiles[i].drawDown(ctx);
+    } else {
+      tiles[i].drawUp(ctx);
+    }
+  }
 }
 
-document.addEventListener('click', function(e) {
-    const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    for (let i = 0; i < tiles.length; i++) {
-        if (tiles[i].isSelected(x, y)) {
-            tiles[i].drawFaceUp();
-        }
+function update() {
+  if (flippedTiles.length === 2) {
+    let first = flippedTiles[0];
+    let second = flippedTiles[1];
+    if (tiles[first].color !== tiles[second].color) {
+      setTimeout(function() {
+        tiles[first].revealed = false;
+        tiles[second].revealed = false;
+      }, 1000);
     }
+    flippedTiles = [];
+  }
+}
+
+function gameLoop() {
+  draw();
+  update();
+
+  requestAnimationFrame(gameLoop);
+}
+
+document.addEventListener("click", function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  for (let i = 0; i < tiles.length; i++) {  
+    if (flippedTiles.length <= 2 && tiles[i].is_selected(mouseX, mouseY) && tiles[i].revealed !== true) {
+      tiles[i].revealed = true;
+      flippedTiles.push(i);
+    }
+  }
 });
+
+gameLoop();
+
