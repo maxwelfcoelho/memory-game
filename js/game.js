@@ -44,12 +44,18 @@ function update() {
   if (flippedTiles.length === 2) {
     let first = flippedTiles[0];
     let second = flippedTiles[1];
+
+    if (tiles[first].color === tiles[second].color) {
+      flippedTiles = [];
+      clickedTile = 0;
+    }
+
     if (tiles[first].color !== tiles[second].color) {
       setTimeout(function() {
         tiles[first].revealed = false;
         tiles[second].revealed = false;
         clickedTile = 0;
-      }, 1000);
+      }, 1500);
     }
     flippedTiles = [];
   }
